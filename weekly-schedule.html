@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>周计划</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #111113;
+    --card: #1a1a1f;
+    --card-border: #2a2a30;
+    --text: #e4e4e7;
+    --text-dim: #8a8a95;
+    --text-muted: #55555f;
+
+    --robotics: #3b82f6;
+    --robotics-bg: #3b82f612;
+    --writing: #f59e0b;
+    --writing-bg: #f59e0b12;
+    --exercise: #22c55e;
+    --exercise-bg: #22c55e12;
+    --engage: #a78bfa;
+    --engage-bg: #a78bfa12;
+    --work: #6b7280;
+    --work-bg: #6b728012;
+    --rest: #f472b6;
+    --rest-bg: #f472b612;
+  }
+
+  body {
+    font-family: 'Inter', 'Noto Sans SC', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 20px 16px 60px;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  header {
+    max-width: 640px;
+    margin: 0 auto 32px;
+    padding: 24px 0 20px;
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+
+  header p {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .day-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .day-header {
+    padding: 14px 18px 10px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .day-header .en {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .activity-list {
+    padding: 0 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .activity {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 8px;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+
+  .activity:hover {
+    background: #ffffff06;
+  }
+
+  .activity-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 7px;
+    flex-shrink: 0;
+  }
+
+  .activity-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .activity-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
+  }
+
+  .activity-name {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.45;
+  }
+
+  .activity-name strong {
+    font-weight: 700;
+  }
+
+  .activity-detail {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  .activity-duration {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    margin-top: 5px;
+    min-width: 52px;
+    text-align: right;
+  }
+
+  /* Category colors */
+  .cat-robotics .activity-dot { background: var(--robotics); }
+  .cat-robotics .activity-name { color: #93bbfc; }
+  .cat-writing .activity-dot { background: var(--writing); }
+  .cat-writing .activity-name { color: #fbbf4e; }
+  .cat-exercise .activity-dot { background: var(--exercise); }
+  .cat-exercise .activity-name { color: #6ee7a0; }
+  .cat-engage .activity-dot { background: var(--engage); }
+  .cat-engage .activity-name { color: #c4b5fd; }
+  .cat-work .activity-dot { background: var(--work); }
+  .cat-work .activity-name { color: var(--text-dim); }
+  .cat-rest .activity-dot { background: var(--rest); }
+  .cat-rest .activity-name { color: #f9a8d4; }
+
+  .special-section {
+    margin-top: 8px;
+  }
+
+  .special-section .day-header {
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--card-border);
+    margin: 12px 0 4px;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 12px 10px 48px; }
+    header { margin-bottom: 24px; padding: 16px 0 16px; }
+    header h1 { font-size: 24px; }
+    .day-header { padding: 12px 14px 8px; font-size: 14px; }
+    .activity-list { padding: 0 6px 8px; }
+    .activity { gap: 10px; padding: 8px 6px; }
+    .activity-name { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📋 周计划</h1>
+  <p>Side-hustle 时间分配 · 写作 × Robotics × 增长</p>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:var(--writing)"></span>写作</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--robotics)"></span>Robotics</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--engage)"></span>互动/增长</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--exercise)"></span>运动</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--work)"></span>上班</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--rest)"></span>日常</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- 周一 -->
+  <div class="day-card">
+    <div class="day-header">周一 <span class="en">Monday</span></div>
+    <div class="activity-list">
+      <div class="activity cat-engage">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">早餐</div>
+          <div class="activity-name">随性互动（X / LinkedIn）</div>
+        </div>
+        <div class="activity-duration">50 min</div>
+      </div>
+      <div class="activity cat-writing">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">晚上</div>
+          <div class="activity-name"><strong>发布长文</strong> + LinkedIn post + X thread</div>
+        </div>
+        <div class="activity-duration">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 周二 -->
+  <div class="day-card">
+    <div class="day-header">周二 <span class="en">Tuesday</span></div>
+    <div class="activity-list">
+      <div class="activity cat-robotics">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">7:00 – 8:30</div>
+          <div class="activity-name"><strong>Robotics 学习</strong></div>
+        </div>
+        <div class="activity-duration">1.5 hr</div>
+      </div>
+      <div class="activity cat-work">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">上班</div>
+          <div class="activity-name">9:00 – 5:30</div>
+        </div>
+        <div class="activity-duration">—</div>
+      </div>
+      <div class="activity cat-exercise">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">下班后</div>
+          <div class="activity-name">运动：Z2 轻松跑</div>
+        </div>
+        <div class="activity-duration">40 min</div>
+      </div>
+      <div class="activity cat-robotics">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">8:30 – 10:00</div>
+          <div class="activity-name"><strong>Robotics Build</strong></div>
+        </div>
+        <div class="activity-duration">1.5 hr</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 周三 -->
+  <div class="day-card">
+    <div class="day-header">周三 <span class="en">Wednesday</span></div>
+    <div class="activity-list">
+      <div class="activity cat-writing">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">7:00 – 8:30</div>
+          <div class="activity-name"><strong>长文写作</strong></div>
+        </div>
+        <div class="activity-duration">1.5 hr</div>
+      </div>
+      <div class="activity cat-work">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">上班</div>
+          <div class="activity-name">9:00 – 5:30</div>
+          <div class="activity-detail">偷时间做 newsletter 相关</div>
+        </div>
+        <div class="activity-duration">—</div>
+      </div>
+      <div class="activity cat-exercise">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">下班后</div>
+          <div class="activity-name">运动：全身力量</div>
+        </div>
+        <div class="activity-duration">1 hr</div>
+      </div>
+      <div class="activity cat-engage">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">8:30 – 10:00</div>
+          <div class="activity-name"><strong>增长工作</strong></div>
+          <div class="activity-detail">SEO / cross-promotion outreach / referral program / lead magnet / landing page 优化</div>
+        </div>
+        <div class="activity-duration">1.5 hr</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 周四 -->
+  <div class="day-card">
+    <div class="day-header">周四 <span class="en">Thursday</span></div>
+    <div class="activity-list">
+      <div class="activity cat-engage">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">早餐</div>
+          <div class="activity-name">随性互动</div>
+        </div>
+        <div class="activity-duration">50 min</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 周五 -->
+  <div class="day-card">
+    <div class="day-header">周五 <span class="en">Friday</span></div>
+    <div class="activity-list">
+      <div class="activity cat-work">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">白天</div>
+          <div class="activity-name">早班 ~8:00 → 16:00，~18:00 到家</div>
+        </div>
+        <div class="activity-duration">—</div>
+      </div>
+      <div class="activity cat-robotics">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">19:00 – 21:30</div>
+          <div class="activity-name"><strong>Robotics 学习 / Build</strong></div>
+        </div>
+        <div class="activity-duration">2–2.5 hr</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 周六 -->
+  <div class="day-card">
+    <div class="day-header">周六 <span class="en">Saturday</span></div>
+    <div class="activity-list">
+      <div class="activity cat-exercise">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">早晨</div>
+          <div class="activity-name">运动：短跑 / tempo</div>
+        </div>
+        <div class="activity-duration">30 min</div>
+      </div>
+      <div class="activity cat-writing">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">上午</div>
+          <div class="activity-name"><strong>长文写作</strong></div>
+        </div>
+        <div class="activity-duration">3–4 hr</div>
+      </div>
+      <div class="activity cat-engage">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">中午</div>
+          <div class="activity-name">策略互动（curated list）</div>
+        </div>
+        <div class="activity-duration">1 hr</div>
+      </div>
+      <div class="activity cat-robotics">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">下午</div>
+          <div class="activity-name"><strong>Robotics Build</strong></div>
+        </div>
+        <div class="activity-duration">2–3 hr</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 周日 -->
+  <div class="day-card">
+    <div class="day-header">周日 <span class="en">Sunday</span></div>
+    <div class="activity-list">
+      <div class="activity cat-robotics">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">上午</div>
+          <div class="activity-name"><strong>Robotics 学习 / Build</strong></div>
+        </div>
+        <div class="activity-duration">2–3 hr</div>
+      </div>
+      <div class="activity cat-engage">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">中午</div>
+          <div class="activity-name">策略互动（curated list）</div>
+        </div>
+        <div class="activity-duration">1 hr</div>
+      </div>
+      <div class="activity cat-exercise">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">下午</div>
+          <div class="activity-name">运动：长跑</div>
+        </div>
+        <div class="activity-duration">1–2.5 hr</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 特殊 -->
+  <div class="day-card special-section">
+    <div class="day-header">📌 固定事项</div>
+    <div class="activity-list">
+      <div class="activity cat-writing">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">月末最后一个周日</div>
+          <div class="activity-name">Craft review</div>
+        </div>
+        <div class="activity-duration">1 hr</div>
+      </div>
+      <div class="activity cat-rest">
+        <div class="activity-dot"></div>
+        <div class="activity-body">
+          <div class="activity-time">每天</div>
+          <div class="activity-name">10:00 PM 上床</div>
+        </div>
+        <div class="activity-duration">—</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
